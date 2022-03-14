@@ -3,6 +3,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:app_delivery_api/app/core/exceptions/email_already_registered.dart';
+import 'package:app_delivery_api/app/core/exceptions/user_notfound_exception.dart';
 import 'package:app_delivery_api/app/entities/user.dart';
 import 'package:app_delivery_api/app/repositories/user_repository.dart';
 import 'package:shelf/shelf.dart';
@@ -15,7 +16,21 @@ class AuthController {
 
   @Route.post('/')
   Future<Response> login(Request request) async {
-    return Response.ok('');
+    final jsonRQ = jsonDecode(await request.readAsString());
+
+    try {
+      final user =
+          await _userRepository.login(jsonRQ['email'], jsonRQ['senha']);
+
+      return Response.ok(user.toJson(),
+          headers: {'content-type': 'application/json'});
+    } on UserNotFoundException catch (e, s) {
+      print('$e,$s');
+      return Response(403, headers: {'content-type': 'application/json'});
+    } catch (e, s) {
+      print('$e,$s');
+      return Response.internalServerError();
+    }
   }
 
   @Route.post('/register')
