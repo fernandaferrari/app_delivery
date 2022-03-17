@@ -9,6 +9,13 @@ class GerencianetAuthInterceptor extends Interceptor {
   void onRequest(
       RequestOptions options, RequestInterceptorHandler handler) async {
     final accessToken = await _login();
+
+    options.headers
+        .addAll({'authorization': 'Bearer $accessToken', 'content-type': ''});
+
+    options.contentType = 'application/json';
+
+    handler.next(options);
   }
 
   Future<String> _login() async {
@@ -16,7 +23,7 @@ class GerencianetAuthInterceptor extends Interceptor {
 
     final headers = {
       'authorization': 'Basic ${_getAuthorization()}',
-      'content-type': ''
+      'content-type': 'application/json'
     };
 
     final result = await client.post('/oauth/token',
@@ -28,7 +35,7 @@ class GerencianetAuthInterceptor extends Interceptor {
 
   String _getAuthorization() {
     final clientId =
-        env['GERENCIANET_CLIENT_ID'] ?? env['gerenciabetClientId'] ?? '';
+        env['GERENCIANET_CLIENT_ID'] ?? env['gerencianetClientId'] ?? '';
     final clientSecret = env['GERENCIANET_CLIENT_SECRET'] ??
         env['gerencianetClientSecret'] ??
         '';

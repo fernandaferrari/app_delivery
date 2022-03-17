@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:app_delivery_api/app/core/gerencianet/gerencianet_auth_interceptor.dart';
 import 'package:dio/dio.dart';
 import 'package:dio/native_imp.dart';
 import 'package:dio_http2_adapter/dio_http2_adapter.dart';
@@ -13,16 +14,23 @@ class GerenciaNetRestClient extends DioForNative {
 
   GerenciaNetRestClient() : super(_baseOptions) {
     _configureCertificates();
-    interceptors.add(LogInterceptor());
+    interceptors.add(LogInterceptor(responseBody: true));
+  }
+
+  GerenciaNetRestClient auth() {
+    interceptors.add(GerencianetAuthInterceptor());
+    return this;
   }
 
   void _configureCertificates() {
     httpClientAdapter =
         Http2Adapter(ConnectionManager(onClientCreate: (uri, config) {
       final pathCRT = env['GERENCIANET_CERTIFICADO_CRT'] ??
-          env['gerencianetCertificadoCRT'];
+          env['gerencianetCertificadoCRT'] ??
+          '';
       final pathKEY = env['GERENCIANET_CERTIFICADO_KEY'] ??
-          env['gerencianetCertificadoKEY'];
+          env['gerencianetCertificadoKey'] ??
+          '';
 
       final root = Directory.current.path;
       final securityContext = SecurityContext(withTrustedRoots: true);
